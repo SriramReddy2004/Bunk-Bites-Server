@@ -1,5 +1,4 @@
 const nodemailer = require('nodemailer');
-const { debugPrint } = require('./debug');
 
 const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -17,6 +16,7 @@ const sendMail = async (to, subject, text) => {
             subject: subject,
             text: text
         };
+        await transporter.sendMail(mailOptions)
         return true
     }
     catch(e) {
