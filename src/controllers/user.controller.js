@@ -15,7 +15,7 @@ const loginUser = async (req, res) => {
             ]
         })
         if(user) {
-            const savedPassword = user.passowrd;
+            const savedPassword = user.password;
             const passwordMatched = await bcrypt.compare(password, savedPassword);
             if(passwordMatched) {
                 const tokenBody = {
