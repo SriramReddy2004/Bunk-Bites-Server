@@ -1,0 +1,11 @@
+#verify-button {
+    padding-left: 20px;
+    padding-right: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgb(20, 187, 20);
+    color: white;
+    cursor: pointer;
+}

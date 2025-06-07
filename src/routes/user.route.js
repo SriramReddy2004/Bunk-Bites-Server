@@ -1,3 +1,5 @@
+const path = require('path');
+
 const { Router } = require("express")
 
 const { loginUser, registerUser, verifyUserRegistration } = require("../controllers/user.controller")
@@ -8,6 +10,6 @@ const userRouter = Router()
 
 userRouter.post("/login", formatUserData, loginUser)
 userRouter.post("/signup", formatUserData, registerUser)
-userRouter.get("/verify/:token", validateJWT, verifyUserRegistration)
+userRouter.post("/verify", validateJWT, verifyUserRegistration)
 
 module.exports = { userRouter }
