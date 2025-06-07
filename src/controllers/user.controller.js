@@ -65,7 +65,7 @@ const registerUser = async (req, res) => {
                 expiresIn: 600
             }
         )
-        const verificationUrl = `${process.env.SERVER_BASE_URL}/api/user/verify/${token}`
+        const verificationUrl = `${process.env.SERVER_BASE_URL}/user/verify/${token}`
         if(await sendMail(email, "Verify your account", verificationUrl)) {
             return res.status(200).json({ message: "Click on the link sent to your mail to confirm its you, link expires in 10 minutes" })
         }
