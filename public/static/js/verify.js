@@ -10,10 +10,13 @@ const verifyAccount = async (token) => {
                 }
             }
         )
-        if(response.status === 201) {
-            open("/user/success")
+        const decoded = await response.json()
+        if(response.status >= 200 && response.status < 300) {
+            // console.log(decoded)
+            alert(decoded['message'])
         } else {
-            open("/user/error")
+            // open("/user/error")
+            alert(decoded['message'])
         }
     }
     catch(e) {

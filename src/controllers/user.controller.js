@@ -22,7 +22,8 @@ const loginUser = async (req, res) => {
                     userId: user._id,
                     email: user.email,
                     phone: user.phone,
-                    username: user.username
+                    username: user.username,
+                    role: user.role
                 };
                 const token = jwt.sign(
                     tokenBody,
@@ -57,7 +58,7 @@ const registerUser = async (req, res) => {
     try{
         const { username, email, phone, password, role } = req.body;
         if(role === "admin") {
-            res.status(403).json({ message: "You can't create an account directly as admin" })
+            return res.status(403).json({ message: "You can't create an account directly as admin" })
         }
         const hashedPassword = await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS))
         const tokenBody = { email, username, phone, password: hashedPassword, role };
@@ -81,11 +82,8 @@ const registerUser = async (req, res) => {
 
 const verifyUserRegistration = async (req, res) => {
     try {
-        if(req.user.role === null) {
-            req.user.role = "user"
-        }
         const { username, phone, email, password, role } = req.user;
-        if(role === "user") {
+        if(role === undefined) {
             const newUser = new User({ email, phone, password, username })
             await newUser.save()
             return res.status(201).json({ message: "Account created successfully. Please login" })

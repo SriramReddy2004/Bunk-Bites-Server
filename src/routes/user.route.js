@@ -1,5 +1,4 @@
 const path = require('path');
-
 const { Router } = require("express")
 
 const { loginUser, registerUser, verifyUserRegistration } = require("../controllers/user.controller")
