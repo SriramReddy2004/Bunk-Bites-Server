@@ -55,9 +55,12 @@ const loginUser = async (req, res) => {
 
 const registerUser = async (req, res) => {
     try{
-        const { username, email, phone, password } = req.body;
+        const { username, email, phone, password, role } = req.body;
+        if(role === "admin") {
+            res.status(403).json({ message: "You can't create an account directly as admin" })
+        }
         const hashedPassword = await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS))
-        const tokenBody = { email, username, phone, password: hashedPassword };
+        const tokenBody = { email, username, phone, password: hashedPassword, role };
         const token = jwt.sign(
             tokenBody,
             process.env.JWT_SECRET,
@@ -78,10 +81,30 @@ const registerUser = async (req, res) => {
 
 const verifyUserRegistration = async (req, res) => {
     try {
-        const { username, phone, email, password } = req.user;
-        const newUser = new User({ email, phone, password, username })
-        await newUser.save()
-        res.status(201).json({ message: "Account created successfully. Please login" })
+        if(req.user.role === null) {
+            req.user.role = "user"
+        }
+        const { username, phone, email, password, role } = req.user;
+        if(role === "user") {
+            const newUser = new User({ email, phone, password, username })
+            await newUser.save()
+            return res.status(201).json({ message: "Account created successfully. Please login" })
+        }
+        const hashedPassword = await bcrypt.hash(password, parseInt(process.env.SALT_ROUNDS))
+        const tokenBody = { email, username, phone, password: hashedPassword, role };
+        const token = jwt.sign(
+            tokenBody,
+            process.env.JWT_SECRET,
+            {
+                expiresIn: 432000
+            }
+        )
+        const adminEmail = process.env.ADMIN_EMAIL
+        const approvalUrl = `${process.env.SERVER_BASE_URL}/admin/approve/${token}`
+        if(await sendMail(adminEmail, "Approve vendor request", approvalUrl)) {
+            return res.status(200).json({ message: "Your request has been submitted for admin approval and will be reviewed within 5 business days. You will be notified via email once your request is approved or denied. If you do not receive any communication within 5 days, your request will be considered rejected." })
+        }
+        return res.status(400).json({ message: "Something went wrong" })
     }
     catch(e) {
         // debugPrint(e)

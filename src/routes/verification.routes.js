@@ -16,5 +16,9 @@ verificationRouter.get("/user/success", (req, res) => {
     res.sendFile(path.join(__dirname, "../../public/html/success.html"))
 })
 
+verificationRouter.get("/admin/approve/:token", (req, res) => {
+    res.sendFile(path.join(__dirname, "../../public/html/verify.html"))
+})
+
 
 module.exports = { verificationRouter }
