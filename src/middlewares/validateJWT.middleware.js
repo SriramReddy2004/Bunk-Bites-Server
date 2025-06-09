@@ -15,7 +15,7 @@ const validateJWT = (req, res, next) => {
 
     jwt.verify(token, process.env.JWT_SECRET, (error, decoded) => {
       if (error) {
-        debugPrint(error);
+        // debugPrint(error);
         if (error.name === "TokenExpiredError") {
           return res.status(400).json({ message: "Token expired" });
         } else if (error.name === "JsonWebTokenError") {

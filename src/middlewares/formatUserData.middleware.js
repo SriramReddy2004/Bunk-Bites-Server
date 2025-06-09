@@ -9,7 +9,7 @@ const formatUserData = (req, res, next) => {
         req.body.username = req.body.username.trim()
     }
     if(req.body.phone) {
-        req.body.phone = req.body.username.trim().toLowerCase()
+        req.body.phone = req.body.phone.trim()
     }
     next()
 }
