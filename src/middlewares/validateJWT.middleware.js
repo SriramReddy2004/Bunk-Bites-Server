@@ -6,6 +6,7 @@ const validateJWT = (req, res, next) => {
   try {
     const token =
       req.params.token ||
+      req.query.token ||
       req.cookies.token ||
       (req.headers.authorization && req.headers.authorization.split(" ")[1]);
 
