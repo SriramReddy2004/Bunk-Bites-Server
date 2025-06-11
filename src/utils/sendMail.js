@@ -14,7 +14,7 @@ const sendMail = async (to, subject, text) => {
             from: process.env.NODEMAILER_EMAIL,
             to: to,
             subject: subject,
-            text: text
+            html: text
         };
         await transporter.sendMail(mailOptions)
         return true

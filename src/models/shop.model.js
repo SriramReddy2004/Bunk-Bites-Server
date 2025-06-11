@@ -14,9 +14,6 @@ const shopSchema = new mongoose.Schema(
             type: String,
             enum: ["open", "closed"]
         }
-    },
-    {
-
     }
 )
 
