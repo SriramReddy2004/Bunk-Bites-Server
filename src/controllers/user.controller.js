@@ -13,6 +13,7 @@ const loginUser = async (req, res) => {
     });
     if (user) {
       const savedPassword = user.password;
+      console.log(savedPassword)
       const passwordMatched = await bcrypt.compare(password, savedPassword);
       if (passwordMatched) {
         const tokenBody = {
@@ -112,6 +113,7 @@ const registerUser = async (req, res) => {
     return res.status(400).json({ message: "Something went wrong" });
   } catch (e) {
     debugPrint(e);
+    return res.status(500).json({ message: "Internal server error", error: e });
   }
 };
 
@@ -125,15 +127,11 @@ const verifyUserRegistration = async (req, res) => {
         .status(201)
         .json({ message: "Account created successfully. Please login" });
     }
-    const hashedPassword = await bcrypt.hash(
-      password,
-      parseInt(process.env.SALT_ROUNDS)
-    );
     const tokenBody = {
       email,
       username,
       phone,
-      password: hashedPassword,
+      password,
       role,
     };
     const token = jwt.sign(tokenBody, process.env.JWT_SECRET, {

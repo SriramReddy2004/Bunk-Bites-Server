@@ -4,7 +4,8 @@ const shopSchema = new mongoose.Schema(
     {
         owner: {
             type: mongoose.Types.ObjectId,
-            ref: "Vendor"
+            ref: "users",
+            required: true
         },
         shopName: {
             type: String,
@@ -12,7 +13,11 @@ const shopSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            enum: ["open", "closed"]
+            enum: ["open", "closed"],
+            default: "closed"
+        },
+        shopLogo: {
+            type: String,
         }
     }
 )

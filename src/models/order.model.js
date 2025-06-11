@@ -8,13 +8,13 @@ const orderSchema = new mongoose.Schema(
         },
         userId: {
             type: mongoose.Types.ObjectId,
-            ref: "User"
+            ref: "users"
         },
         products: [
             {
                 product: {
                     type: mongoose.Types.ObjectId,
-                    ref: "Product",
+                    ref: "products",
                 },
                 quantity: {
                     type: Number,
