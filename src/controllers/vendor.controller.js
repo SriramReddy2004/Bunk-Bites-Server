@@ -7,11 +7,15 @@ const { debugPrint } = require("../utils/debug")
 
 const createShop = async (req, res) => {
     try {
-        const { owner, shopName } = req.body;
-        if(owner === undefined || shopName === undefined) {
-            return res.status(400).json({ message: "Please provide owner, shopName fields" })
+        if(!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
         }
-        const newShop = new Shop({ owner, shopName, shopLogo: "" })
+        const { shopName } = req.body;
+        if(shopName === undefined) {
+            return res.status(400).json({ message: "Please provide shopName" })
+        }
+        const owner = req.user.userId;
+        const newShop = new Shop({ owner, shopName, shopLogo: req.file.path })
         await newShop.save()
         return res.status(201).json({ message: "Shop created successfully" })
     }
@@ -42,12 +46,15 @@ const updateShopStatus = async (req, res) => {
 }
 
 const addProduct = async (req, res) => {
+    if(!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+    }
     try {
-        const { shopId, name, price, imageUrl, quantity } = req.body;
+        const { shopId, name, price, quantity } = req.body;
         if(shopId === undefined || name === undefined || price === undefined || quantity === undefined) {
             return res.status(400).json({ message: "Please provide all fields" })
         }
-        const newProduct = new Product({ shopId, name, price, imageUrl: "", avalialeQuantity: quantity })
+        const newProduct = new Product({ shopId, name, price, imageUrl: req.file.path, avalialeQuantity: quantity })
         await newProduct.save()
         return res.status(201).json({ message: "Product created successfully", product: newProduct })
     }

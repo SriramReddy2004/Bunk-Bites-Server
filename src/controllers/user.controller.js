@@ -1,9 +1,14 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const mongoose = require('mongoose');
 
 const { User } = require("../models/user.model");
 const { debugPrint } = require("../utils/debug");
 const { sendMail } = require("../utils/sendMail");
+const { Shop } = require("../models/shop.model");
+const { Product } = require("../models/product.model");
+const { ProductRating } = require("../models/productRating.model");
+const { ShopRating } = require("../models/shopRating.model")
 
 const loginUser = async (req, res) => {
   try {
@@ -13,7 +18,7 @@ const loginUser = async (req, res) => {
     });
     if (user) {
       const savedPassword = user.password;
-      console.log(savedPassword)
+      // console.log(savedPassword)
       const passwordMatched = await bcrypt.compare(password, savedPassword);
       if (passwordMatched) {
         const tokenBody = {
@@ -190,4 +195,178 @@ const verifyUserRegistration = async (req, res) => {
   }
 };
 
-module.exports = { loginUser, registerUser, verifyUserRegistration };
+const getListOfAllShops = async (req, res) => {
+  try {
+    const page = req.query.page || 1;
+    const shopName = req.query.shopName || "";
+    const shops = await Shop.aggregate([
+      {
+        $match: {
+          shopName: {
+            $regex: shopName,
+            $options: 'i'
+          }
+        }
+      },
+      {
+        $facet: {
+          metadata: [
+            {
+              $count: "count"
+            }
+          ],
+          data: [
+            {
+              $skip: (page-1) * 10
+            },
+            {
+              $limit: 10,
+            },
+            {
+              $lookup: {
+                from: "shop ratings",
+                localField: "_id",
+                foreignField: "shop",
+                as: "ratings"
+              }
+            },
+            {
+              $addFields: {
+                rating: { $avg: "$ratings.rating" }
+              }
+            },
+            {
+              $project: {
+                __v: 0,
+                ratings: 0
+              }
+            }
+          ]
+        }
+      }
+    ])
+    debugPrint(shops)
+    return res.status(200).json(shops[0])
+  } catch (e) {
+    return res.status(500).json({ message: "Internal server error", error: e });
+  }
+}
+
+const getProductsOfAShop = async (req, res) => {
+  try {
+    const { shopId }  = req.body
+    const page = req.query.page || 1
+    const products = await Product.aggregate([
+      {
+        $match: {
+          shopId: new mongoose.Types.ObjectId(shopId)
+        }
+      },
+      {
+        $facet: {
+          metadata: [
+            { $count: "count" }
+          ],
+          data: [
+            {
+              $skip: (page - 1) * 10
+            },
+            {
+              $limit: 10
+            },
+            {
+              $lookup: {
+                from: "product ratings",
+                localField: "_id",
+                foreignField: "product",
+                as: "ratings"
+              }
+            },
+            {
+              $addFields: {
+                rating: {
+                  $avg: "$ratings.rating"
+                }
+              }
+            },
+            {
+              $project: {
+                __v: 0,
+                ratings: 0
+              }
+            }
+          ],
+
+        }
+      }
+    ])
+    res.status(200).json(products[0])
+  } catch (e) {
+    debugPrint(e)
+    return res.status(500).json({ message: "Internal server error", error: e });
+  }
+}
+
+const rateAProduct = async (req, res) => {
+  try {
+    const { productId, rating, comment } = req.body;
+    const { userId } = req.user;
+    const newRating = await ProductRating.findOneAndUpdate(
+      {
+        user: userId,
+        product: productId
+      },
+      {
+        $set: {
+          rating: rating,
+          comment: comment || ""
+        },
+        $setOnInsert: {
+          user: userId,
+          product: productId
+        }
+      },
+      {
+        upsert: true,
+        new: true
+      }
+    )
+    res.status(200).json({ mesage: "Rated successfully", newRating })
+  } catch (e) {
+    debugPrint(e)
+    return res.status(500).json({ message: "Internal server error", error: e });
+  }
+}
+
+const rateAShop = async (req, res) => {
+  try {
+    const { shopId, rating, comment } = req.body;
+    const { userId } = req.user;
+    const newRating = await ShopRating.findOneAndUpdate(
+      {
+        user: userId,
+        shop: shopId
+      },
+      {
+        $set: {
+          rating: rating,
+          comment: comment || ""
+        },
+        $setOnInsert: {
+          user: userId,
+          shop: shopId
+        }
+      },
+      {
+        upsert: true,
+        new: true
+      }
+    )
+    res.status(200).json({ mesage: "Rated successfully", newRating })
+  } catch (e) {
+    debugPrint(e)
+    return res.status(500).json({ message: "Internal server error", error: e });
+  }
+}
+
+module.exports = { loginUser, registerUser, verifyUserRegistration, getListOfAllShops, getProductsOfAShop, rateAProduct, rateAShop };
