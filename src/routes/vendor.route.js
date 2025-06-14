@@ -1,13 +1,13 @@
 const path = require('path');
 const { Router } = require("express");
-const { allow } = require('../middlewares/role.middleware');
+const { products, shops } = require('../config/cloudinary.config');
 const { createShop, updateShopStatus, addProduct, deleteProduct, updateProductDetails, processOrder } = require('../controllers/vendor.controller');
 
 const vendorRouter = Router()
 
-vendorRouter.post("/create-shop", createShop)
+vendorRouter.post("/create-shop", shops.single("image"), createShop)
 vendorRouter.put("/update-shop-status", updateShopStatus)
-vendorRouter.post("/add-product", addProduct)
+vendorRouter.post("/add-product", products.single("image"), addProduct)
 vendorRouter.delete("/delete-product", deleteProduct)
 vendorRouter.put("/update-product", updateProductDetails)
 vendorRouter.put("/process-order", processOrder)
