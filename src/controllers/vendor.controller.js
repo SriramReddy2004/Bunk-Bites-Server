@@ -103,14 +103,15 @@ const updateProductDetails = async (req, res) => {
     }
 }
 
-const processOrder = async (req, res) => {
+const getAllShopsOfAVendor = async (req, res) => {
     try {
-        
-    }
-    catch(e) {
+        const { userId } = req.user;
+        const shops = await Shop.find({ owner: userId })
+        return res.status(200).json({ shops })
+    } catch(e) {
         debugPrint(e)
         return res.status(500).json({ message: "Internal server error", error: e })
     }
 }
 
-module.exports = { createShop, updateShopStatus, addProduct, deleteProduct, updateProductDetails, processOrder }
+module.exports = { createShop, updateShopStatus, addProduct, deleteProduct, updateProductDetails, getAllShopsOfAVendor }

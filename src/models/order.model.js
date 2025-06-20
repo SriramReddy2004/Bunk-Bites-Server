@@ -4,7 +4,12 @@ const orderSchema = new mongoose.Schema(
     {
         status: {
             type: String,
-            enum: ["placed", "served", "rejected"]
+            enum: ["placed", "served", "rejected"],
+            default: "placed"
+        },
+        shopId: {
+            type: mongoose.Types.ObjectId,
+            ref: "shops"
         },
         userId: {
             type: mongoose.Types.ObjectId,
@@ -24,10 +29,14 @@ const orderSchema = new mongoose.Schema(
         ],
         bill: {
             type: Number,
-            requiired: true
+            required: true
         }
     },
     {
         timestamps: true
     }
 )
+
+const Order = mongoose.model("orders", orderSchema)
+
+module.exports = { Order }
