@@ -26,7 +26,7 @@ app.listen(port, () => {
     connectToDB()
 
     setInterval(() => {
-        fetch(process.env.SERVER_URL)
+        fetch(process.env.SERVER_BASE_URL)
     }, 840000)
 
 })
