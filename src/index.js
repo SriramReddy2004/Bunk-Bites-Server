@@ -24,4 +24,9 @@ const port = process.env.PORT || 5000
 app.listen(port, () => {
     debugPrint(`Server is listening on port: ${port}`)
     connectToDB()
+
+    setInterval(() => {
+        fetch(process.env.SERVER_URL)
+    }, 840000)
+
 })
