@@ -1,7 +1,7 @@
 const path = require('path');
 const { Router } = require("express")
 
-const { loginUser, registerUser, verifyUserRegistration, getListOfAllShops, getProductsOfAShop, rateAProduct, rateAShop } = require("../controllers/user.controller")
+const { loginUser, registerUser, verifyUserRegistration, getListOfAllShops, getProductsOfAShop, rateAProduct, rateAShop, placeOrder } = require("../controllers/user.controller")
 const { formatUserData } = require("../middlewares/formatUserData.middleware")
 const { validateJWT } = require("../middlewares/validateJWT.middleware")
 
@@ -14,5 +14,9 @@ userRouter.get("/get-all-shops", validateJWT, getListOfAllShops)
 userRouter.post("/get-products-of-a-shop", validateJWT, getProductsOfAShop)
 userRouter.post("/rate-a-product", validateJWT, rateAProduct)
 userRouter.post("/rate-a-shop", validateJWT, rateAShop)
+
+
+
+userRouter.post('/place-order', validateJWT, placeOrder)
 
 module.exports = { userRouter }

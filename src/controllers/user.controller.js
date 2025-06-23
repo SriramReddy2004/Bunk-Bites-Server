@@ -10,6 +10,8 @@ const { Product } = require("../models/product.model");
 const { ProductRating } = require("../models/productRating.model");
 const { ShopRating } = require("../models/shopRating.model")
 
+
+
 const loginUser = async (req, res) => {
   try {
     const { emailOrPhone, password } = req.body;
@@ -369,4 +371,62 @@ const rateAShop = async (req, res) => {
   }
 }
 
-module.exports = { loginUser, registerUser, verifyUserRegistration, getListOfAllShops, getProductsOfAShop, rateAProduct, rateAShop };
+// For Testing
+const placeOrder = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const userId = req.user.userId;
+    const { productId, quantity } = req.body;
+
+    if (!productId || !quantity || quantity <= 0) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: "Product and positive quantity are required" });
+    }
+
+    const productInDb = await Product.findById(productId).session(session);
+
+    if (!productInDb) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    if (quantity > productInDb.avalialeQuantity) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: `Insufficient quantity for product: ${productInDb.name}` });
+    }
+
+    const totalBill = productInDb.price * quantity;
+
+    await Product.updateOne(
+      { _id: productId, avalialeQuantity: { $gte: quantity } },
+      { $inc: { avalialeQuantity: -quantity } }
+    ).session(session);
+
+    const newOrder = new Order({
+      userId,
+      products: [{ product: productId, quantity }],
+      bill: totalBill,
+      status: 'placed'
+    });
+
+    await newOrder.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(201).json({ message: "Order placed successfully", order: newOrder });
+  } catch (e) {
+    await session.abortTransaction();
+    session.endSession();
+    debugPrint(e);
+    return res.status(500).json({ message: "Internal server error", error: e.message });
+  }
+};
+
+
+module.exports = { loginUser, registerUser, verifyUserRegistration, getListOfAllShops, getProductsOfAShop, rateAProduct, rateAShop, placeOrder };

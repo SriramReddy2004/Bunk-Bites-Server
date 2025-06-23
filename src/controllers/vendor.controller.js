@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 
 const { Shop } = require('../models/shop.model');
 const { Product } = require('../models/product.model');
+const { Order } = require("../models/order.model")
 const { debugPrint } = require("../utils/debug")
 
 const createShop = async (req, res) => {
@@ -113,4 +114,52 @@ const processOrder = async (req, res) => {
     }
 }
 
-module.exports = { createShop, updateShopStatus, addProduct, deleteProduct, updateProductDetails, processOrder }
+// Testing Process Order
+const processOrderrr = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        const { orderId, action } = req.body; 
+        const vendorId = req.user.userId;
+
+        if (!['served', 'rejected'].includes(action)) {
+            return res.status(400).json({ message: "Invalid action. Must be 'served' or 'rejected'" });
+        }
+
+        const order = await Order.findById(orderId).populate('products.product').session(session);
+
+        if (!order) {
+            await session.abortTransaction();
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        const vendorProductIds = (await Product.find({ shopId: { $exists: true }, }).populate('shopId'))
+            .filter(prod => prod.shopId.owner.toString() === vendorId)
+            .map(prod => prod._id.toString());
+
+        const isVendorInvolved = order.products.some(p =>
+            vendorProductIds.includes(p.product._id.toString())
+        );
+
+        if (!isVendorInvolved) {
+            await session.abortTransaction();
+            return res.status(403).json({ message: "You are not authorized to process this order" });
+        }
+
+        order.status = action;
+        await order.save({ session });
+
+        await session.commitTransaction();
+        session.endSession();
+
+        return res.status(200).json({ message: `Order ${action} successfully` });
+    } catch (e) {
+        await session.abortTransaction();
+        session.endSession();
+        debugPrint(e);
+        return res.status(500).json({ message: "Internal server error", error: e.message });
+    }
+};
+
+module.exports = { createShop, updateShopStatus, addProduct, deleteProduct, updateProductDetails, processOrder, processOrderrr }
