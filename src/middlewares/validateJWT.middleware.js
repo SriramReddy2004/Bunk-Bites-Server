@@ -11,18 +11,18 @@ const validateJWT = (req, res, next) => {
       (req.headers.authorization && req.headers.authorization.split(" ")[1]);
 
     if (!token) {
-      return res.status(404).json({ message: "Token not found" });
+      return res.status(401).json({ message: "Token not found" });
     }
 
     jwt.verify(token, process.env.JWT_SECRET, (error, decoded) => {
       if (error) {
         // debugPrint(error);
         if (error.name === "TokenExpiredError") {
-          return res.status(400).json({ message: "Token expired" });
+          return res.status(401).json({ message: "Token expired" });
         } else if (error.name === "JsonWebTokenError") {
-          return res.status(400).json({ message: "Invalid token or signature" });
+          return res.status(401).json({ message: "Invalid token or signature" });
         } else {
-          return res.status(400).json({ message: error.message });
+          return res.status(401).json({ message: error.message });
         }
       }
 
